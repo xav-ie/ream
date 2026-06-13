@@ -12,15 +12,31 @@ inactivity. Files are processed in a per-request temp dir and never persisted.
 
 ## Tools
 
-| Tool              | Does                                                     |
-| ----------------- | -------------------------------------------------------- |
-| Compress          | Shrink file size (target a max MB, or a quality preset). |
-| Images → PDF      | One image per page; drag to set order.                   |
-| Merge             | Combine several PDFs into one.                           |
-| Office → PDF      | Word, Excel, ODF, and more (via LibreOffice).            |
-| PDF → Images      | A PNG per page, returned as a zip.                       |
-| Reorder / extract | Pick a page sequence or range.                           |
-| Split             | One PDF per page, as a zip.                              |
+The home grid — one card per tool, wrapping three-up, mirroring the UI:
+
+```mermaid
+---
+config:
+  theme: base
+  themeVariables:
+    primaryColor: "#1b0f2e"
+    primaryTextColor: "#d9c8f5"
+    primaryBorderColor: "#2f1d49"
+    fontFamily: ui-sans-serif, system-ui, sans-serif
+---
+block-beta
+  columns 3
+  compress["🗜 Compress<br/>Shrink file size."]
+  images["🖼 Images → PDF<br/>One image per page."]
+  merge["🔀 Merge<br/>Combine several PDFs into one."]
+  office["📄 Office → PDF<br/>Word, Excel, ODF, and more."]
+  pdf2img["🟩 PDF → Images<br/>A PNG per page, as a zip."]
+  reorder["↕️ Reorder / extract<br/>Pick a page sequence or range."]
+  split["✂️ Split<br/>One PDF per page, as a zip."]
+
+  classDef card fill:#1b0f2e,stroke:#2f1d49,stroke-width:1px,color:#d9c8f5;
+  class compress,images,merge,office,pdf2img,reorder,split card
+```
 
 The UI's reorder/merge/images grids support drag-to-reorder, typed page ranges,
 duplicate/remove, and click-to-preview (lightbox for images and PDF pages).
