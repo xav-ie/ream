@@ -1,0 +1,46 @@
+---
+import Tool from '../components/tool.astro';
+---
+
+<Tool
+  title="Merge"
+  description="Select PDFs, drag the thumbnails into the order you want, then merge."
+  api="/api/merge"
+  filename="merged.pdf"
+  submit="Merge"
+>
+  <label>
+    PDFs to merge
+    <input
+      class="field"
+      type="file"
+      name="files"
+      id="merge-files"
+      accept="application/pdf"
+      multiple
+      required
+    />
+  </label>
+
+  <label>
+    Order
+    <input
+      class="field"
+      type="text"
+      id="merge-order"
+      placeholder="select PDFs…"
+    />
+  </label>
+
+  <label class="size-row">
+    Thumbnail size
+    <input type="range" id="merge-size" min="70" max="280" value="120" />
+  </label>
+
+  <span class="status" id="merge-status" aria-live="polite"></span>
+  <div class="thumbs" id="merge-thumbs"></div>
+</Tool>
+
+<script>
+  import '../lib/merge.ts';
+</script>

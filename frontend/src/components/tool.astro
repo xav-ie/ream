@@ -1,0 +1,30 @@
+---
+import Base from '../layouts/base.astro';
+
+interface Props {
+  title: string;
+  description: string;
+  api: string;
+  filename: string;
+  submit?: string;
+}
+const { title, description, api, filename, submit = 'Run' } = Astro.props;
+---
+
+<Base title={`${title} · ream`}>
+  <a class="back" href="/">← all tools</a>
+  <h1>{title}</h1>
+  <p class="desc">{description}</p>
+
+  <form class="tool-form" data-api={api} data-filename={filename}>
+    <slot />
+    <div class="actions">
+      <button type="submit" class="btn">{submit}</button>
+      <span class="status" aria-live="polite"></span>
+    </div>
+  </form>
+</Base>
+
+<script>
+  import '../lib/run.ts';
+</script>

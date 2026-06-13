@@ -1,0 +1,16 @@
+---
+import Tool from '../components/tool.astro';
+---
+
+<Tool
+  title="Office → PDF"
+  description="Convert Word, Excel, PowerPoint, ODF, and similar documents to PDF via LibreOffice."
+  api="/api/office-to-pdf"
+  filename="converted.pdf"
+  submit="Convert"
+>
+  <label>
+    Document (.docx, .xlsx, .pptx, .odt, …)
+    <input class="field" type="file" name="file" required />
+  </label>
+</Tool>

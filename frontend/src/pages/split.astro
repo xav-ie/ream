@@ -1,0 +1,22 @@
+---
+import Tool from '../components/tool.astro';
+---
+
+<Tool
+  title="Split into pages"
+  description="Produce one PDF per page, returned as a zip archive."
+  api="/api/split"
+  filename="pages.zip"
+  submit="Split"
+>
+  <label>
+    PDF
+    <input
+      class="field"
+      type="file"
+      name="file"
+      accept="application/pdf"
+      required
+    />
+  </label>
+</Tool>

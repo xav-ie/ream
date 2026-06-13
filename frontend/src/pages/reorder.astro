@@ -1,0 +1,47 @@
+---
+import Tool from '../components/tool.astro';
+---
+
+<Tool
+  title="Reorder / extract pages"
+  description="Drag the page thumbnails to reorder, or ✕ to drop pages and extract a subset. The page order below stays in sync."
+  api="/api/reorder"
+  filename="reordered.pdf"
+  submit="Apply"
+>
+  <label>
+    PDF
+    <input
+      class="field"
+      type="file"
+      name="file"
+      id="reorder-file"
+      accept="application/pdf"
+      required
+    />
+  </label>
+
+  <label>
+    Page order
+    <input
+      class="field"
+      type="text"
+      name="order"
+      id="reorder-order"
+      placeholder="select a PDF…"
+      required
+    />
+  </label>
+
+  <label class="size-row">
+    Thumbnail size
+    <input type="range" id="reorder-size" min="70" max="280" value="120" />
+  </label>
+
+  <span class="status" id="reorder-status" aria-live="polite"></span>
+  <div class="thumbs" id="reorder-thumbs"></div>
+</Tool>
+
+<script>
+  import '../lib/reorder.ts';
+</script>

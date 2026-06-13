@@ -1,0 +1,59 @@
+---
+import Tool from '../components/tool.astro';
+---
+
+<Tool
+  title="PDF → Images"
+  description="Drag to reorder or ✕ to drop pages, then render the selected pages to PNGs (returned as a zip)."
+  api="/api/pdf-to-images"
+  filename="images.zip"
+  submit="Convert"
+>
+  <label>
+    PDF
+    <input
+      class="field"
+      type="file"
+      name="file"
+      id="pdf2img-file"
+      accept="application/pdf"
+      required
+    />
+  </label>
+
+  <label>
+    Page order
+    <input
+      class="field"
+      type="text"
+      name="order"
+      id="pdf2img-order"
+      placeholder="select a PDF…"
+      required
+    />
+  </label>
+
+  <label>
+    Resolution (DPI, 36–600)
+    <input
+      class="field"
+      type="number"
+      name="dpi"
+      value="150"
+      min="36"
+      max="600"
+    />
+  </label>
+
+  <label class="size-row">
+    Thumbnail size
+    <input type="range" id="pdf2img-size" min="70" max="280" value="120" />
+  </label>
+
+  <span class="status" id="pdf2img-status" aria-live="polite"></span>
+  <div class="thumbs" id="pdf2img-thumbs"></div>
+</Tool>
+
+<script>
+  import '../lib/pdf-to-images.ts';
+</script>

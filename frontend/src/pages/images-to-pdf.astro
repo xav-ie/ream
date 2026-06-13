@@ -1,0 +1,46 @@
+---
+import Tool from '../components/tool.astro';
+---
+
+<Tool
+  title="Images → PDF"
+  description="Select images, drag the thumbnails into the order you want, then convert."
+  api="/api/images-to-pdf"
+  filename="images.pdf"
+  submit="Convert"
+>
+  <label>
+    Images (JPEG, PNG, …)
+    <input
+      class="field"
+      type="file"
+      name="files"
+      id="images-files"
+      accept="image/*"
+      multiple
+      required
+    />
+  </label>
+
+  <label>
+    Order
+    <input
+      class="field"
+      type="text"
+      id="images-order"
+      placeholder="select images…"
+    />
+  </label>
+
+  <label class="size-row">
+    Thumbnail size
+    <input type="range" id="images-size" min="70" max="280" value="120" />
+  </label>
+
+  <span class="status" id="images-status" aria-live="polite"></span>
+  <div class="thumbs" id="images-thumbs"></div>
+</Tool>
+
+<script>
+  import '../lib/images.ts';
+</script>

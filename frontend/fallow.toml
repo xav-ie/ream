@@ -1,0 +1,1 @@
+entry = ["src/pages/**", "astro.config.mjs", "uno.config.ts", "eslint.config.js", "prettier.config.mjs"]

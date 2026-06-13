@@ -1,0 +1,399 @@
+:root {
+  --bg: #12081a;
+  --panel: #1d1029;
+  --border: #34234a;
+  --text: #fff17b;
+  --muted: #a892bf;
+  --accent: #51d136;
+  --accent-press: #3fa82a;
+  --ok: #7be35a;
+  --err: #ff757f;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  font:
+    15px/1.5 system-ui,
+    sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+main {
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 2.5rem 1rem 4rem;
+}
+
+a {
+  color: var(--accent);
+}
+
+h1 {
+  font-size: 1.5rem;
+  margin: 0 0 0.25rem;
+}
+
+/* Landing wordmark: coil-spring brandmark to the left of "ream". */
+.wordmark {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.brandmark {
+  width: 1.4em;
+  height: 1.4em;
+  flex: none;
+}
+
+.lead {
+  color: var(--muted);
+  margin: 0 0 2rem;
+}
+
+.back {
+  display: inline-block;
+  font-size: 0.85rem;
+  margin-bottom: 1rem;
+  text-decoration: none;
+  color: var(--muted);
+}
+.back:hover {
+  color: var(--accent);
+}
+
+.desc {
+  color: var(--muted);
+  margin: 0 0 1.5rem;
+}
+
+/* Tool form layout */
+.tool-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.25rem;
+}
+.tool-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.status {
+  font-size: 0.85rem;
+  color: var(--muted);
+  min-height: 1.1em;
+}
+.status.ok {
+  color: var(--ok);
+}
+.status.err {
+  color: var(--err);
+}
+
+/* Lightbox: click a tile for a closer look */
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgb(0 0 0 / 80%);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+.lightbox[hidden] {
+  display: none;
+}
+.lightbox-stage {
+  display: flex;
+}
+.lightbox-stage canvas,
+.lightbox-stage img {
+  max-width: 92vw;
+  max-height: 92vh;
+  border-radius: 4px;
+  box-shadow: 0 12px 48px rgb(0 0 0 / 60%);
+}
+.lightbox-stage canvas[hidden],
+.lightbox-stage img[hidden] {
+  display: none;
+}
+.lightbox button {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: rgb(0 0 0 / 55%);
+  color: var(--text);
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+}
+.lightbox button:hover {
+  border-color: var(--accent);
+}
+.lightbox button:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+.lightbox-close {
+  top: 1rem;
+  right: 1rem;
+  width: 40px;
+  height: 40px;
+  font-size: 1rem;
+}
+.lightbox-nav {
+  top: 50%;
+  transform: translateY(-50%);
+  width: 48px;
+  height: 48px;
+  font-size: 1.6rem;
+  line-height: 1;
+}
+.lightbox-previous {
+  left: 1rem;
+}
+.lightbox-next {
+  right: 1rem;
+}
+.lightbox-title {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  max-width: 60vw;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.85rem;
+  color: var(--text);
+  background: rgb(0 0 0 / 55%);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  padding: 0.3rem 0.7rem;
+  border-radius: 8px;
+}
+.lightbox-title:empty {
+  display: none;
+}
+.lightbox-counter {
+  position: absolute;
+  bottom: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.85rem;
+  color: var(--text);
+  background: rgb(0 0 0 / 55%);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  padding: 0.25rem 0.7rem;
+  border-radius: 999px;
+}
+
+/* Compress: quality / size dichotomy */
+.mode-toggle {
+  display: flex;
+  gap: 1.2rem;
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+.mode-toggle label {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--text);
+  cursor: pointer;
+}
+.mode-toggle input {
+  accent-color: var(--accent);
+}
+/* Show only the control matching the selected mode. */
+.tool-form:has(input[name='mode'][value='quality']:checked) .when-size,
+.tool-form:has(input[name='mode'][value='size']:checked) .when-quality {
+  display: none;
+}
+
+/* Draggable thumbnail grids (reorder, merge, images) */
+.size-row {
+  flex-direction: row !important;
+  align-items: center;
+  gap: 0.6rem !important;
+}
+.size-row input[type='range'] {
+  flex: 1;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+.thumbs {
+  /* Display width per tile; the canvas renders larger and scales down. */
+  --thumb-w: 120px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 0.6rem;
+}
+.thumbs:empty {
+  display: none;
+}
+.tile {
+  position: relative;
+  width: var(--thumb-w);
+  cursor: grab;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  padding: 4px;
+  line-height: 0;
+  transition:
+    border-color 0.15s ease,
+    transform 0.15s ease,
+    opacity 0.15s ease,
+    box-shadow 0.15s ease;
+}
+.tile:hover {
+  border-color: var(--accent);
+  transform: scale(1.04);
+  box-shadow: 0 6px 16px rgb(0 0 0 / 35%);
+}
+/* Source tile while being dragged. */
+.tile.dragging {
+  opacity: 0.35;
+}
+/* Drop target currently under the pointer. */
+.tile.over {
+  border-color: var(--accent);
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.tile canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 3px;
+}
+.tile-remove {
+  position: absolute;
+  top: -7px;
+  right: -7px;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid var(--bg);
+  border-radius: 50%;
+  background: var(--err);
+  color: #12081a;
+  font-size: 11px;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0;
+  transition:
+    opacity 0.15s ease,
+    transform 0.1s ease;
+}
+.tile-dup {
+  position: absolute;
+  bottom: -7px;
+  right: -7px;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid var(--bg);
+  border-radius: 50%;
+  background: var(--accent);
+  color: #12081a;
+  font-size: 11px;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0;
+  transition:
+    opacity 0.15s ease,
+    transform 0.1s ease;
+}
+.tile:hover .tile-remove,
+.tile:hover .tile-dup {
+  opacity: 1;
+}
+.tile-remove:hover,
+.tile-dup:hover {
+  transform: scale(1.15);
+}
+.tile-label {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  max-width: calc(100% - 12px);
+  overflow: hidden;
+  font-size: 0.7rem;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 2px 5px;
+  border-radius: 4px;
+  background: rgb(0 0 0 / 45%);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  color: var(--text);
+}
+/* Floating preview that follows the cursor during a drag. */
+.drag-preview {
+  width: 120px;
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  background: var(--panel);
+  padding: 4px;
+  box-shadow: 0 10px 24px rgb(0 0 0 / 45%);
+  opacity: 0.95;
+}
+
+/* Card grid on the home page */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  /* Every row matches the tallest; 1fr columns are already equal width, so
+     all cards end up the size of the largest one. */
+  grid-auto-rows: 1fr;
+  gap: 0.9rem;
+}
+.card h2 {
+  font-size: 1rem;
+  margin: 0.4rem 0 0.2rem;
+}
+.card p {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+.card .icon {
+  width: 28px;
+  height: 28px;
+  color: var(--accent);
+}

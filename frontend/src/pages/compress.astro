@@ -1,0 +1,55 @@
+---
+import Tool from '../components/tool.astro';
+---
+
+<Tool
+  title="Compress"
+  description="Shrink a PDF by quality, or set a maximum size and let it pick the highest quality that fits."
+  api="/api/compress"
+  filename="compressed.pdf"
+  submit="Compress"
+>
+  <label>
+    PDF
+    <input
+      class="field"
+      type="file"
+      name="file"
+      accept="application/pdf"
+      required
+    />
+  </label>
+
+  <fieldset class="mode-toggle">
+    <label>
+      <input type="radio" name="mode" value="size" checked />
+      By size
+    </label>
+    <label>
+      <input type="radio" name="mode" value="quality" />
+      By quality
+    </label>
+  </fieldset>
+
+  <label class="when-quality">
+    Quality
+    <select class="field" name="level">
+      <option value="screen">screen — smallest</option>
+      <option value="ebook" selected>ebook — balanced</option>
+      <option value="printer">printer — high</option>
+      <option value="prepress">prepress — largest</option>
+    </select>
+  </label>
+
+  <label class="when-size">
+    Maximum size (MB) — best quality that fits is chosen automatically
+    <input
+      class="field"
+      type="number"
+      name="maxmb"
+      min="0.1"
+      step="0.1"
+      placeholder="e.g. 2"
+    />
+  </label>
+</Tool>

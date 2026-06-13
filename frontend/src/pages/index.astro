@@ -1,0 +1,25 @@
+---
+import Base from '../layouts/base.astro';
+import Icon from '../components/icon.astro';
+import Brandmark from '../components/brandmark.astro';
+import { tools } from '../lib/tools';
+---
+
+<Base title="ream — PDF tools">
+  <h1 class="wordmark"><Brandmark />ream</h1>
+  <p class="lead">
+    On-demand PDF utilities. Pick a tool, run it, choose where to save.
+  </p>
+
+  <div class="grid">
+    {
+      tools.map((tool) => (
+        <a class="card" href={`/${tool.slug}/`}>
+          <Icon name={tool.slug} />
+          <h2>{tool.title}</h2>
+          <p>{tool.blurb}</p>
+        </a>
+      ))
+    }
+  </div>
+</Base>
