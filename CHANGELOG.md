@@ -1,5 +1,11 @@
 # ream
 
+## 0.3.0
+
+### Minor Changes
+
+- 4f5a0c1: Chain tools: after a tool saves a PDF, a "Continue with" row opens the next tool with that result already loaded.
+
 ## 0.2.2
 
 ### Patch Changes
