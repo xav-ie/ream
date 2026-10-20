@@ -8,8 +8,8 @@ frontend/dist/
 frontend/.astro/
 
 # Nix / direnv
-result
-result-*
+/result
+/result-*
 .direnv/
 
 # Test fixtures are generated at runtime — never committed
