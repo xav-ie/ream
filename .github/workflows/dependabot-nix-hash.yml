@@ -1,0 +1,38 @@
+name: Dependabot Nix hash
+
+# package.nix pins a hash of the frontend's pnpm dependencies, so every
+# Dependabot bump of frontend/pnpm-lock.yaml breaks the Nix build until it is
+# recomputed. This commits the new hash to the Dependabot branch, then starts CI
+# for that commit: pushes made with GITHUB_TOKEN trigger no workflows, but a
+# workflow_dispatch does, and its checks attach to the PR's head commit.
+on:
+  pull_request:
+    paths: [frontend/pnpm-lock.yaml]
+
+permissions: {}
+
+jobs:
+  update:
+    if: github.event.pull_request.user.login == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write # push the hash commit to the Dependabot branch
+      actions: write # dispatch CI for the new commit
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1  # zizmor: ignore[artipacked] the hash commit is pushed with these credentials
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+      - uses: cachix/install-nix-action@13d8dd58da0234aa297dedd986986ccb8e7f3e24 # v31.11.1
+      - run: scripts/update-pnpm-hash
+      - name: Commit the hash and run CI on it
+        env:
+          BRANCH: ${{ github.event.pull_request.head.ref }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git diff --quiet package.nix && exit 0
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "build(deps): update the pnpmDeps hash" package.nix
+          git push origin "HEAD:$BRANCH"
+          gh workflow run ci.yml --ref "$BRANCH"

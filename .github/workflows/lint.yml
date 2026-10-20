@@ -35,7 +35,7 @@ jobs:
         with:
           persist-credentials: false
       - uses: cachix/install-nix-action@13d8dd58da0234aa297dedd986986ccb8e7f3e24 # v31.11.1
-      - run: nix run --inputs-from . nixpkgs#shellcheck -- scripts/podman-docker
+      - run: nix run --inputs-from . nixpkgs#shellcheck -- scripts/*
 
   # Audits the workflows themselves: injection, credentials, unpinned actions.
   zizmor:

@@ -69,7 +69,7 @@
                 shfmt.enable = true;
               };
               settings = {
-                formatter.shfmt.includes = [ "scripts/podman-docker" ];
+                formatter.shfmt.includes = [ "scripts/*" ];
                 formatter.prettier.includes = [ "*.jsonc" ];
                 on-unmatched = "fatal";
                 excludes = [

@@ -4,6 +4,7 @@ on:
   pull_request:
   push:
     branches: [main]
+  workflow_dispatch: # run by dependabot-nix-hash.yml after it fixes a hash
 
 concurrency:
   group: ci-${{ github.ref }}

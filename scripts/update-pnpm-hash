@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# Recomputes the pnpmDeps hash in package.nix after frontend/pnpm-lock.yaml
+# changes: blank it, let Nix report the hash it got, write that back.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+sed -i 's|hash = "sha256-[^"]*";|hash = "";|' package.nix
+got=$(nix build .#ream --no-link 2>&1 | sed -n 's/.*got: *\(sha256-[^ ]*\).*/\1/p' | head -n1) || true
+if [ -z "$got" ]; then
+  git checkout -- package.nix
+  echo "update-pnpm-hash: Nix reported no hash mismatch" >&2
+  exit 1
+fi
+sed -i "s|hash = \"\";|hash = \"$got\";|" package.nix
+echo "pnpmDeps hash: $got"
