@@ -1,5 +1,11 @@
 # ream
 
+## 0.2.2
+
+### Patch Changes
+
+- eefec8c: Build the container image on Debian with LibreOffice's no-GUI packages. It shrinks from about 3 GB to 650 MB, which Cloudflare's runtime can unpack, so the container starts again.
+
 ## 0.2.1
 
 ### Patch Changes
