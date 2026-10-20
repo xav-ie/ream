@@ -20,21 +20,22 @@
       perSystem =
         { config, pkgs, ... }:
         let
+          # The trimmed LibreOffice and headless ghostscript the image ships,
+          # so the tests and dev shell run what Cloudflare runs.
+          ghostscript = pkgs.ghostscript_headless;
+          libreoffice = pkgs.callPackage ./libreoffice-headless.nix { };
           # CLI tools the server (and its tests) shell out to.
-          tools = with pkgs; [
-            pdfcpu
-            qpdf
+          tools = [
             ghostscript
-            img2pdf
-            poppler-utils
             libreoffice
+            pkgs.img2pdf
+            pkgs.pdfcpu
+            pkgs.poppler-utils
+            pkgs.qpdf
           ];
         in
         {
-          packages.ream = pkgs.callPackage ./package.nix {
-            ghostscript = pkgs.ghostscript_headless;
-            libreoffice = pkgs.callPackage ./libreoffice-headless.nix { };
-          };
+          packages.ream = pkgs.callPackage ./package.nix { inherit ghostscript libreoffice; };
           packages.default = config.packages.ream;
 
           treefmt =

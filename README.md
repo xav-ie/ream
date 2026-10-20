@@ -121,11 +121,18 @@ prettier (`pnpm format`) for the Astro plugin. Run `pnpm types` after changing
   Uploads are single use. Plain multipart files still work.
 - **Cloudflare:** `src/worker.ts` checks the Access token and forwards the
   request to one `Ream` container (`standard-1`: ½ vCPU, 4 GiB). The
-  `Dockerfile` builds ream and the frontend, then installs the tools from
-  Debian, using LibreOffice's no-GUI packages. That keeps the image near
-  650 MB; the Nix closure carries LibreOffice's desktop stack and comes to
-  about 3 GB, which Cloudflare's runtime repeatedly failed to unpack. The flake
-  stays the reference for development and the tests.
+  `Dockerfile` builds `package.nix` with Nix and copies only its runtime
+  closure into an empty image, so the container runs exactly what `nix build`
+  produces.
+- **LibreOffice:** `libreoffice-headless.nix` copies nixpkgs' prebuilt
+  LibreOffice and deletes what `--convert-to` never loads (help, other
+  languages, GTK, GStreamer, Java, Python), which also drops those
+  dependencies: the closure goes from ~2.8 GB to ~900 MB without compiling
+  anything.
+- **Image layers:** Cloudflare's runtime refuses to unpack a single layer that
+  holds all of LibreOffice, though the same files over several layers start
+  fine. The `Dockerfile` spreads any store path over 256 MB across four layers
+  and the rest of the closure over 32.
 
 ## Releases
 
