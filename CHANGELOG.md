@@ -1,5 +1,11 @@
 # ream
 
+## 0.4.0
+
+### Minor Changes
+
+- 24ffa1c: Show each result on the page with Save, Preview and "Continue with" buttons, instead of asking where to save before running. Chaining no longer needs the file saved first.
+
 ## 0.3.1
 
 ### Patch Changes
