@@ -21,15 +21,12 @@ command line tools (`qpdf`, `pdfcpu`, `ghostscript`, `img2pdf`, `poppler`,
 own temporary folder, which is deleted when the response is sent. When idle it
 uses nothing, on a server or on Cloudflare.
 
-| Tool              | What it does                                   |
-| ----------------- | ---------------------------------------------- |
-| Compress          | Shrinks a PDF by quality preset or target size |
-| Merge             | Combines several PDFs in the order you choose  |
-| Reorder / extract | Picks, reorders or duplicates pages            |
-| Split             | One PDF per page, as a zip                     |
-| Images → PDF      | One image per page                             |
-| PDF → Images      | A PNG per page, as a zip                       |
-| Office → PDF      | Word, Excel, PowerPoint, ODF and more          |
+<!-- diagram:tools -->
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/diagrams/tools-dark.svg">
+  <img src="docs/diagrams/tools.svg" alt="ream's tools: Compress (PDF to PDF): Shrink file size. Images → PDF (Images to PDF): One image per page. Merge (PDF to PDF): Combine several PDFs into one. Office → PDF (Office to PDF): Word, Excel, ODF, and more. PDF → Images (PDF to ZIP): A PNG per page, as a zip. Reorder / extract (PDF to PDF): Pick a page sequence or range. Split (PDF to ZIP): One PDF per page, as a zip. Tools chain: report.docx goes through Office → PDF, then Compress, then Split, each continuing with the last result, to pages.zip.">
+</picture>
+<!-- /diagram:tools -->
 
 The grids support drag to reorder, typed page ranges, and click to preview.
 Running a tool shows its result on the page, ezgif-style: the file's name and

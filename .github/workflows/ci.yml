@@ -61,6 +61,8 @@ jobs:
       - run: pnpm types && git diff --exit-code worker-configuration.d.ts
       - run: pnpm check:types
       - run: pnpm test
+      - name: Diagrams match scripts/diagrams.mjs
+        run: node scripts/diagrams.mjs && git diff --exit-code docs/diagrams README.md
 
   # Go tests against the real CLIs, the full package build and formatting, via
   # the flake (it wires ghostscript, qpdf, libreoffice, … onto PATH).
