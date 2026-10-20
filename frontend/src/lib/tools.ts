@@ -5,30 +5,51 @@ export interface Tool {
   slug: string;
   title: string;
   blurb: string;
+  // What the tool's file input takes; a PDF result chains to 'pdf' tools.
+  input: 'pdf' | 'images' | 'office';
 }
 
 export const tools: readonly Tool[] = [
-  { slug: 'compress', title: 'Compress', blurb: 'Shrink file size.' },
+  {
+    slug: 'compress',
+    title: 'Compress',
+    blurb: 'Shrink file size.',
+    input: 'pdf',
+  },
   {
     slug: 'images-to-pdf',
     title: 'Images → PDF',
     blurb: 'One image per page.',
+    input: 'images',
   },
-  { slug: 'merge', title: 'Merge', blurb: 'Combine several PDFs into one.' },
+  {
+    slug: 'merge',
+    title: 'Merge',
+    blurb: 'Combine several PDFs into one.',
+    input: 'pdf',
+  },
   {
     slug: 'office-to-pdf',
     title: 'Office → PDF',
     blurb: 'Word, Excel, ODF, and more.',
+    input: 'office',
   },
   {
     slug: 'pdf-to-images',
     title: 'PDF → Images',
     blurb: 'A PNG per page, as a zip.',
+    input: 'pdf',
   },
   {
     slug: 'reorder',
     title: 'Reorder / extract',
     blurb: 'Pick a page sequence or range.',
+    input: 'pdf',
   },
-  { slug: 'split', title: 'Split', blurb: 'One PDF per page, as a zip.' },
+  {
+    slug: 'split',
+    title: 'Split',
+    blurb: 'One PDF per page, as a zip.',
+    input: 'pdf',
+  },
 ];

@@ -109,6 +109,28 @@ h1 {
 .status.err {
   color: var(--err);
 }
+.chain {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+.chain[hidden] {
+  display: none;
+}
+.chip {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.3rem 0.8rem;
+  color: var(--text);
+  text-decoration: none;
+  transition: border-color 0.15s;
+}
+.chip:hover {
+  border-color: var(--accent);
+}
 
 /* Lightbox: click a tile for a closer look */
 .lightbox {

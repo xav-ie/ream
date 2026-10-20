@@ -32,6 +32,9 @@ uses nothing, on a server or on Cloudflare.
 | Office → PDF      | Word, Excel, PowerPoint, ODF and more          |
 
 The grids support drag to reorder, typed page ranges, and click to preview.
+After a tool saves a PDF, a "Continue with" row hands that result straight to
+the next tool (compress, then reorder, then split, and so on); the file rides
+in IndexedDB across the page load and never goes back to the server.
 
 ## Deploy your own
 

@@ -4,6 +4,8 @@
 // click's user-activation window; otherwise activation expires across the await
 // and the picker throws. Browsers without the API fall back to a name prompt.
 
+import { offerChain, takeChained } from './chain';
+
 interface SavePickerOptions {
   suggestedName?: string;
 }
@@ -162,8 +164,10 @@ async function runWithStatus(
   setStatus('Working…');
   setBusy(button, true);
   try {
-    await save(await runOperation(api, form, setStatus), handle, suggested);
+    const result = await runOperation(api, form, setStatus);
+    await save(result, handle, suggested);
     setStatus('Saved.', 'ok');
+    offerChain(form, result, suggested);
   } catch (error) {
     setStatus(errorMessage(error), 'err');
   } finally {
@@ -187,4 +191,6 @@ for (const form of document.querySelectorAll<HTMLFormElement>(
     event.preventDefault();
     void handleSubmit(form);
   });
+  // After every module script, so the page's grid is listening for the file.
+  document.addEventListener('DOMContentLoaded', () => void takeChained(form));
 }
