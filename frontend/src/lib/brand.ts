@@ -1,6 +1,7 @@
 // Single source of truth for the ream coil-spring mark. Both the inline
 // wordmark (components/brandmark.astro) and the favicon (pages/favicon.svg.ts)
 // render from springMark() so the geometry never drifts between the two.
+// .github/logo.svg (the README) is a static copy; update it with the mark.
 
 // Three rings, drawn as alternating half-ellipses descending the icon.
 const PATH =

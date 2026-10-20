@@ -1,0 +1,25 @@
+{
+  "name": "ream",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "types": "wrangler types",
+    "check:types": "tsc --noEmit",
+    "changeset": "changeset",
+    "version": "changeset version && pnpm install --lockfile-only",
+    "release": "changeset tag",
+    "test": "node --test 'src/**/*.test.ts'"
+  },
+  "packageManager": "pnpm@10.33.2",
+  "dependencies": {
+    "@cloudflare/containers": "^0.3.7",
+    "jose": "^6.2.12"
+  },
+  "devDependencies": {
+    "@changesets/cli": "^3.0.3",
+    "typescript": "^7.0.2",
+    "wrangler": "^4.151.2"
+  }
+}

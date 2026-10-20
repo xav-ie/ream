@@ -15,3 +15,9 @@ result-*
 # Test fixtures are generated at runtime — never committed
 *.pdf
 *.png
+
+# Worker
+node_modules/
+.wrangler/
+.dev.vars*
+!.dev.vars.example

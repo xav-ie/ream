@@ -1,0 +1,23 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "ream",
+  "main": "src/worker.ts",
+  "compatibility_date": "2026-10-01",
+  "observability": { "enabled": true },
+  // From the Cloudflare Access application in front of ream; see .dev.vars.example.
+  "secrets": { "required": ["REAM_ACCESS_TEAM_DOMAIN", "REAM_ACCESS_AUD"] },
+  "containers": [
+    {
+      "class_name": "Ream",
+      "image": "./Dockerfile",
+      // LibreOffice and ghostscript want the memory; 1 GiB basic is too tight.
+      "instance_type": "standard-1",
+      // One instance, so every chunk of an upload lands on the same disk.
+      "max_instances": 1,
+    },
+  ],
+  "durable_objects": {
+    "bindings": [{ "name": "REAM", "class_name": "Ream" }],
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Ream"] }],
+}

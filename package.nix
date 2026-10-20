@@ -15,7 +15,8 @@
   libreoffice,
 }:
 let
-  version = "0.1.0";
+  # package.json carries the version; changesets bumps it on release.
+  inherit ((lib.importJSON ./package.json)) version;
 
   # The top-level pnpm hooks default to the newest pnpm; pin them to pnpm 10 so
   # the build agrees with the committed (pnpm 10) lockfile.

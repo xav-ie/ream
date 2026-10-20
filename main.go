@@ -37,7 +37,14 @@ const (
 	defaultPort    = 8086
 	defaultWebroot = "frontend/dist"
 	opTimeout      = 3 * time.Minute // ceiling for any single CLI invocation
+
+	// Chunked uploads: Cloudflare caps a request body at 100 MB, so the UI sends
+	// each file in pieces under that and the operation names the upload instead.
+	maxChunk = 96 << 20
+	maxFile  = 2 << 30
 )
+
+var uploadID = regexp.MustCompile(`^[0-9a-f]{32}$`)
 
 var (
 	lastActivity atomic.Int64 // unix seconds of most recent request boundary
@@ -75,6 +82,7 @@ func main() {
 func routes(webroot string) http.Handler {
 	mux := http.NewServeMux()
 	mux.Handle("/", http.FileServer(http.Dir(webroot)))
+	mux.HandleFunc("PUT /api/upload/{id}", uploadChunk)
 	mux.HandleFunc("/api/merge", op(merge))
 	mux.HandleFunc("/api/reorder", op(reorder))
 	mux.HandleFunc("/api/split", op(split))
@@ -93,7 +101,7 @@ func webroot() string {
 }
 
 // listener returns the systemd-activated socket (fd 3) when present, else binds
-// 127.0.0.1:port for local development. The bool reports whether activation was
+// $REAM_HOST:port (default 127.0.0.1; the container image sets 0.0.0.0). The bool reports whether activation was
 // used; under socket activation the port is irrelevant (systemd owns the socket).
 func listener(port int) (net.Listener, bool) {
 	if pid, _ := strconv.Atoi(os.Getenv("LISTEN_PID")); pid == os.Getpid() {
@@ -104,7 +112,11 @@ func listener(port int) (net.Listener, bool) {
 			}
 		}
 	}
-	addr := fmt.Sprintf("127.0.0.1:%d", port)
+	host := os.Getenv("REAM_HOST")
+	if host == "" {
+		host = "127.0.0.1"
+	}
+	addr := net.JoinHostPort(host, strconv.Itoa(port))
 	l, err := net.Listen("tcp", addr)
 	if err != nil {
 		log.Fatalf("ream: listen %s: %v", addr, err)
@@ -186,9 +198,50 @@ func op(fn func(j *job) (path, name string, err error)) http.HandlerFunc {
 	}
 }
 
+// uploadsDir holds chunked uploads until an operation claims them.
+// ponytail: no janitor; abandoned uploads go when the container sleeps (or the
+// PrivateTmp unit stops). Add an mtime sweep if a long-lived host ever needs it.
+func uploadsDir() string { return filepath.Join(os.TempDir(), "ream-uploads") }
+
+// uploadChunk writes one piece of an upload at ?offset=N. Pieces may arrive in
+// any order or be retried; each lands at its own offset.
+func uploadChunk(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	if !uploadID.MatchString(id) {
+		http.Error(w, "bad upload id", http.StatusBadRequest)
+		return
+	}
+	offset, err := strconv.ParseInt(r.URL.Query().Get("offset"), 10, 64)
+	if err != nil || offset < 0 || r.ContentLength < 0 || offset+r.ContentLength > maxFile {
+		http.Error(w, "bad offset or length", http.StatusBadRequest)
+		return
+	}
+	r.Body = http.MaxBytesReader(w, r.Body, maxChunk)
+	if err := os.MkdirAll(uploadsDir(), 0o700); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	f, err := os.OpenFile(filepath.Join(uploadsDir(), id), os.O_CREATE|os.O_WRONLY, 0o600)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer f.Close()
+	if _, err := io.Copy(io.NewOffsetWriter(f, offset), r.Body); err != nil {
+		http.Error(w, "upload: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
 // save writes the uploaded files in form field `field` into the job dir,
-// preserving upload order, and returns their on-disk paths.
+// preserving upload order, and returns their on-disk paths. The field holds
+// either multipart files or "<upload id>/<filename>" references to chunked
+// uploads, which are moved in.
 func (j *job) save(field string) ([]string, error) {
+	if refs := j.form.Value[field]; len(refs) > 0 {
+		return j.claim(refs)
+	}
 	headers := j.form.File[field]
 	if len(headers) == 0 {
 		return nil, fmt.Errorf("no files in field %q", field)
@@ -213,6 +266,22 @@ func (j *job) save(field string) ([]string, error) {
 		}
 		src.Close()
 		out.Close()
+		paths = append(paths, dst)
+	}
+	return paths, nil
+}
+
+func (j *job) claim(refs []string) ([]string, error) {
+	var paths []string
+	for i, ref := range refs {
+		id, name, _ := strings.Cut(ref, "/")
+		if !uploadID.MatchString(id) {
+			return nil, fmt.Errorf("bad upload reference %q", ref)
+		}
+		dst := filepath.Join(j.dir, fmt.Sprintf("%03d-%s", i, sanitize(name)))
+		if err := os.Rename(filepath.Join(uploadsDir(), id), dst); err != nil {
+			return nil, fmt.Errorf("upload %s: %w", id, err)
+		}
 		paths = append(paths, dst)
 	}
 	return paths, nil

@@ -150,6 +150,58 @@ func TestMerge(t *testing.T) {
 	}
 }
 
+// A chunked upload, sent out of order, is claimed by an operation through its
+// "<id>/<name>" reference instead of a multipart file.
+func TestChunkedUploadMerge(t *testing.T) {
+	requireTools(t, "gs", "pdfcpu")
+	t.Setenv("TMPDIR", t.TempDir())
+	dir := t.TempDir()
+	h := routes(dir)
+	var refs []string
+	for i, path := range []string{makePDF(t, dir, "a.pdf", 3), makePDF(t, dir, "b.pdf", 2)} {
+		data, err := os.ReadFile(path)
+		if err != nil {
+			t.Fatal(err)
+		}
+		id := strings.Repeat(strconv.Itoa(i), 32)
+		half := len(data) / 2
+		for _, piece := range []struct{ off, end int }{{half, len(data)}, {0, half}} {
+			req := httptest.NewRequest(http.MethodPut,
+				"/api/upload/"+id+"?offset="+strconv.Itoa(piece.off),
+				bytes.NewReader(data[piece.off:piece.end]))
+			rr := httptest.NewRecorder()
+			h.ServeHTTP(rr, req)
+			if rr.Code != http.StatusNoContent {
+				t.Fatalf("upload chunk: %d %s", rr.Code, rr.Body)
+			}
+		}
+		refs = append(refs, id+"/"+filepath.Base(path))
+	}
+	var body bytes.Buffer
+	mw := multipart.NewWriter(&body)
+	for _, ref := range refs {
+		_ = mw.WriteField("files", ref)
+	}
+	mw.Close()
+	req := httptest.NewRequest(http.MethodPost, "/api/merge", &body)
+	req.Header.Set("Content-Type", mw.FormDataContentType())
+	rr := httptest.NewRecorder()
+	h.ServeHTTP(rr, req)
+	out := saveBody(t, dir, "merged.pdf", rr)
+	if got := pdfPageCount(t, out); got != 5 {
+		t.Fatalf("merged page count = %d, want 5", got)
+	}
+}
+
+func TestUploadRejectsBadID(t *testing.T) {
+	req := httptest.NewRequest(http.MethodPut, "/api/upload/..%2Fetc?offset=0", strings.NewReader("x"))
+	rr := httptest.NewRecorder()
+	routes(t.TempDir()).ServeHTTP(rr, req)
+	if rr.Code == http.StatusNoContent {
+		t.Fatal("accepted a non-hex upload id")
+	}
+}
+
 func TestMergeRejectsSingle(t *testing.T) {
 	requireTools(t, "gs")
 	dir := t.TempDir()

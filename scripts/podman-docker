@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# wrangler's Docker binary (WRANGLER_DOCKER_BIN): podman, minus the buildx-only
+# flags its `docker build` passes and podman rejects. wrangler pipes the
+# Dockerfile over a socket (`-f -`), which podman can't open as /dev/stdin, so
+# it is spooled to a file first.
+args=()
+prev=""
+for a in "$@"; do
+  if [ "$prev" = "-f" ] && [ "$a" = "-" ]; then
+    dockerfile=$(mktemp)
+    trap 'rm -f "$dockerfile"' EXIT
+    cat >"$dockerfile"
+    a="$dockerfile"
+  fi
+  case "$a" in
+  --provenance=* | --load) ;;
+  *) args+=("$a") ;;
+  esac
+  prev="$a"
+done
+podman "${args[@]}"
