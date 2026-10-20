@@ -31,7 +31,10 @@
           ];
         in
         {
-          packages.ream = pkgs.callPackage ./package.nix { };
+          packages.ream = pkgs.callPackage ./package.nix {
+            ghostscript = pkgs.ghostscript_headless;
+            libreoffice = pkgs.callPackage ./libreoffice-headless.nix { };
+          };
           packages.default = config.packages.ream;
 
           treefmt =
