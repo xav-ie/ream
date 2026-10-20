@@ -1,34 +1,31 @@
-# Builds ream with Nix, so package.nix stays the one definition of the app and
-# the CLIs it runs, then copies only its runtime closure into an empty image.
-# wrangler builds this for Cloudflare Containers (Deploy button, CI, and
-# `pnpm run deploy`); it needs nothing on the host but Docker or Podman.
-FROM docker.io/nixos/nix:2.35.3@sha256:62c506c32c75395163676006f0c00d75c31578fffaac1167d600289f72477b78 AS build
+# Cloudflare Containers image. Debian's no-GUI LibreOffice keeps it near 1 GB;
+# the Nix closure (package.nix) carries LibreOffice's desktop stack and comes
+# to ~3 GB, which Cloudflare's runtime fails to unpack. The flake still owns
+# development and the tests.
+FROM docker.io/library/golang:1.25-trixie@sha256:2c4c60ef415fbfa5e90300722293bef36c5e63fae17570ce18f580af933dbd73 AS go
 WORKDIR /src
-COPY . .
-RUN nix --extra-experimental-features "nix-command flakes" \
-      --option filter-syscalls false --option sandbox false \
-      build .#ream \
- && mkdir -p /deps/nix/store /app/nix/store /app/etc /app/tmp \
- && for p in $(nix-store -qR result); do \
-      case "$p" in \
-        /nix/store/*-ream-*) cp -a "$p" /app/nix/store/ ;; \
-        *) cp -a "$p" /deps/nix/store/ ;; \
-      esac; \
-    done \
- && touch -h -d @1 /deps /deps/nix /deps/nix/store \
- && ln -s "$(readlink -f result)/bin/ream" /app/ream \
- && chmod 1777 /app/tmp \
- && echo 'root:x:0:0::/tmp:/bin/false' > /app/etc/passwd \
- && echo 'root:x:0:' > /app/etc/group
+COPY go.mod main.go ./
+RUN CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /out/ream . \
+ && CGO_ENABLED=0 GOBIN=/out go install -trimpath -ldflags="-s -w" github.com/pdfcpu/pdfcpu/cmd/pdfcpu@v0.12.1
 
-FROM scratch
-# Two layers: the tools' closure (LibreOffice and the rest, ~2.8 GB) only
-# changes with nixpkgs, so a release that touches ream alone pushes just the
-# small app layer. The fixed directory mtimes keep the deps layer byte-identical.
-COPY --from=build /deps /
-COPY --from=build /app /
+FROM docker.io/library/node:24-trixie-slim@sha256:27526714fd6b7dc938f8cb1665bf1fe749efadadf0145d5bcc07f0fbd0370b60 AS web
+WORKDIR /src/frontend
+COPY frontend/package.json frontend/pnpm-lock.yaml ./
+RUN corepack enable && pnpm install --frozen-lockfile
+COPY frontend/ ./
+RUN pnpm build
+
+FROM docker.io/library/debian:trixie-slim@sha256:918311b7b6c4c6f68b232ba516584925f6c78ad82b6fd534b98979df6438e483
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+      ghostscript qpdf poppler-utils img2pdf \
+      libreoffice-writer-nogui libreoffice-calc-nogui libreoffice-impress-nogui \
+      fonts-dejavu-core fonts-liberation2 fonts-crosextra-carlito fonts-crosextra-caladea \
+ && rm -rf /var/lib/apt/lists/*
+COPY --from=go /out/ream /out/pdfcpu /usr/local/bin/
+COPY --from=web /src/frontend/dist /srv/ream
 # No socket activation here: ream binds the port itself, and the Container's
 # sleepAfter (src/worker.ts), not ream's idle exit, stops it.
-ENV REAM_HOST=0.0.0.0
+ENV REAM_HOST=0.0.0.0 REAM_WEBROOT=/srv/ream
 EXPOSE 8086
-CMD ["/ream", "--port", "8086"]
+CMD ["ream", "--port", "8086"]
