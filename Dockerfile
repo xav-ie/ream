@@ -8,15 +8,25 @@ COPY . .
 RUN nix --extra-experimental-features "nix-command flakes" \
       --option filter-syscalls false --option sandbox false \
       build .#ream \
- && mkdir -p /image/nix/store /image/etc /image/tmp \
- && cp -a $(nix-store -qR result) /image/nix/store/ \
- && ln -s "$(readlink -f result)/bin/ream" /image/ream \
- && chmod 1777 /image/tmp \
- && echo 'root:x:0:0::/tmp:/bin/false' > /image/etc/passwd \
- && echo 'root:x:0:' > /image/etc/group
+ && mkdir -p /deps/nix/store /app/nix/store /app/etc /app/tmp \
+ && for p in $(nix-store -qR result); do \
+      case "$p" in \
+        /nix/store/*-ream-*) cp -a "$p" /app/nix/store/ ;; \
+        *) cp -a "$p" /deps/nix/store/ ;; \
+      esac; \
+    done \
+ && touch -h -d @1 /deps /deps/nix /deps/nix/store \
+ && ln -s "$(readlink -f result)/bin/ream" /app/ream \
+ && chmod 1777 /app/tmp \
+ && echo 'root:x:0:0::/tmp:/bin/false' > /app/etc/passwd \
+ && echo 'root:x:0:' > /app/etc/group
 
 FROM scratch
-COPY --from=build /image /
+# Two layers: the tools' closure (LibreOffice and the rest, ~2.8 GB) only
+# changes with nixpkgs, so a release that touches ream alone pushes just the
+# small app layer. The fixed directory mtimes keep the deps layer byte-identical.
+COPY --from=build /deps /
+COPY --from=build /app /
 # No socket activation here: ream binds the port itself, and the Container's
 # sleepAfter (src/worker.ts), not ream's idle exit, stops it.
 ENV REAM_HOST=0.0.0.0
