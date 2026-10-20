@@ -12,14 +12,18 @@ const { title, description, api, filename, submit = 'Run' } = Astro.props;
 ---
 
 <Base title={`${title} · ream`}>
-  <a class="back" href="/">← all tools</a>
+  <a class="back" href="/">
+    ← all tools
+  </a>
   <h1>{title}</h1>
   <p class="desc">{description}</p>
 
   <form class="tool-form" data-api={api} data-filename={filename}>
     <slot />
     <div class="actions">
-      <button type="submit" class="btn">{submit}</button>
+      <button type="submit" class="btn">
+        {submit}
+      </button>
       <span class="status" aria-live="polite"></span>
     </div>
   </form>
