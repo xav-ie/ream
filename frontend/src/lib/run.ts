@@ -1,10 +1,10 @@
 // Wires every <form data-api> on the page: submit -> upload files in chunks ->
-// POST the operation -> let the user choose where/what to save. The native "Save As" dialog (File System
-// Access API) is requested *before* the network call so it runs inside the
-// click's user-activation window; otherwise activation expires across the await
-// and the picker throws. Browsers without the API fall back to a name prompt.
+// POST the operation -> show the result with Save, Preview and the tools it can
+// continue into (see result.ts). Saving waits for the Save click, so the native
+// "Save As" dialog always opens inside a user gesture.
 
-import { offerChain, takeChained } from './chain';
+import { takeChained } from './chain';
+import { hideResult, showResult, wireResult } from './result';
 
 interface SavePickerOptions {
   suggestedName?: string;
@@ -24,7 +24,7 @@ function picker(): ShowSaveFilePicker | undefined {
 }
 
 function statusSetter(form: HTMLFormElement) {
-  const status = form.querySelector<HTMLElement>('.status');
+  const status = form.querySelector<HTMLElement>('.actions .status');
   return (message: string, kind: '' | 'ok' | 'err' = '') => {
     if (status) {
       status.className = `status ${kind}`.trim();
@@ -49,24 +49,6 @@ function anchorDownload(blob: Blob, name: string): void {
   });
   anchor.click();
   URL.revokeObjectURL(url);
-}
-
-// Acquire a save target inside the click gesture. `cancelled` means the user
-// dismissed the native dialog (so we abort entirely); a missing handle with
-// `cancelled: false` means no File System Access API — fall back after fetch.
-async function acquireHandle(
-  suggested: string,
-): Promise<{ handle?: SaveHandle; cancelled: boolean }> {
-  const show = picker();
-  if (!show) return { cancelled: false };
-  try {
-    return {
-      handle: await show({ suggestedName: suggested }),
-      cancelled: false,
-    };
-  } catch (error) {
-    return { cancelled: (error as DOMException).name === 'AbortError' };
-  }
 }
 
 // Cloudflare caps a request body at 100 MB, so each file goes up first in
@@ -138,50 +120,39 @@ async function runOperation(
   return response.blob();
 }
 
-async function save(
-  blob: Blob,
-  handle: SaveHandle | undefined,
-  suggested: string,
-): Promise<void> {
-  if (handle) {
-    const writable = await handle.createWritable();
-    await writable.write(blob);
-    await writable.close();
+async function save(file: File): Promise<void> {
+  const show = picker();
+  if (!show) {
+    anchorDownload(file, file.name);
     return;
   }
-  const name = globalThis.prompt('Save as…', suggested) ?? suggested;
-  anchorDownload(blob, name);
-}
-
-async function runWithStatus(
-  form: HTMLFormElement,
-  api: string,
-  suggested: string,
-  handle: SaveHandle | undefined,
-): Promise<void> {
-  const setStatus = statusSetter(form);
-  const button = form.querySelector<HTMLButtonElement>('button[type="submit"]');
-  setStatus('Working…');
-  setBusy(button, true);
   try {
-    const result = await runOperation(api, form, setStatus);
-    await save(result, handle, suggested);
-    setStatus('Saved.', 'ok');
-    offerChain(form, result, suggested);
+    const handle = await show({ suggestedName: file.name });
+    const writable = await handle.createWritable();
+    await writable.write(file);
+    await writable.close();
   } catch (error) {
-    setStatus(errorMessage(error), 'err');
-  } finally {
-    setBusy(button, false);
+    if ((error as DOMException).name !== 'AbortError') throw error;
   }
 }
 
 async function handleSubmit(form: HTMLFormElement): Promise<void> {
   const api = form.dataset.api;
   if (!api) return;
-  const suggested = form.dataset.filename || 'result';
-  const { handle, cancelled } = await acquireHandle(suggested);
-  if (cancelled) return;
-  await runWithStatus(form, api, suggested, handle);
+  const setStatus = statusSetter(form);
+  const button = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+  hideResult(form);
+  setStatus('Working…');
+  setBusy(button, true);
+  try {
+    const result = await runOperation(api, form, setStatus);
+    setStatus('Done.', 'ok');
+    showResult(form, result, form.dataset.filename || 'result');
+  } catch (error) {
+    setStatus(errorMessage(error), 'err');
+  } finally {
+    setBusy(button, false);
+  }
 }
 
 for (const form of document.querySelectorAll<HTMLFormElement>(
@@ -191,6 +162,7 @@ for (const form of document.querySelectorAll<HTMLFormElement>(
     event.preventDefault();
     void handleSubmit(form);
   });
+  wireResult(form, save);
   // After every module script, so the page's grid is listening for the file.
   document.addEventListener('DOMContentLoaded', () => void takeChained(form));
 }

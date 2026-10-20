@@ -26,7 +26,18 @@ const { title, description, api, filename, submit = 'Run' } = Astro.props;
       </button>
       <span class="status" aria-live="polite"></span>
     </div>
-    <nav class="chain" aria-label="Use the result in another tool" hidden></nav>
+    <section class="result result-panel" hidden>
+      <div class="result-head">
+        <span class="result-name"></span>
+        <button type="button" class="btn result-save">
+          Save
+        </button>
+        <button type="button" class="chip result-preview">
+          Preview
+        </button>
+      </div>
+      <nav class="chain" aria-label="Use the result in another tool"></nav>
+    </section>
   </form>
 </Base>
 

@@ -1,5 +1,5 @@
 // Chaining: a PDF result can go straight into the next tool, like ezgif's
-// "use this result" row. The file rides in IndexedDB across the page load
+// "use this result" row (shown by result.ts). The file rides in IndexedDB across the page load
 // (results can be far bigger than sessionStorage allows); the next tool's page
 // drops it into its file input, whose change event loads any thumbnail grid.
 
@@ -47,13 +47,12 @@ function chainLink(slug: string, title: string, file: File): HTMLAnchorElement {
   return link;
 }
 
-/** Offers every PDF tool for a PDF result; hides the row for anything else. */
-export function offerChain(form: HTMLFormElement, blob: Blob, name: string) {
+/** Offers every other PDF tool for a PDF result; hides the row otherwise. */
+export function offerChain(form: HTMLFormElement, file: File): void {
   const nav = form.querySelector<HTMLElement>('.chain');
   if (!nav) return;
-  nav.hidden = !name.endsWith('.pdf');
+  nav.hidden = file.type !== 'application/pdf';
   if (nav.hidden) return;
-  const file = new File([blob], name, { type: 'application/pdf' });
   const here = globalThis.location.pathname.replaceAll('/', '');
   const links = tools
     .filter((tool) => tool.input === 'pdf' && tool.slug !== here)
