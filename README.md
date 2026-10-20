@@ -91,6 +91,11 @@ Worker and container locally, which needs Docker or Podman (the dev shell
 routes Podman through `scripts/podman-docker`, which drops the buildx flags
 Podman rejects).
 
+Deploy through a release (see [Releases](#releases)) or from a machine with
+Docker. `pnpm run deploy` under Podman builds the image but fails to start it:
+Podman recompresses the layers on push, so the registry holds a different
+digest than the one wrangler recorded (`IMAGE_REGISTRY_DOESNT_CONTAIN_IMAGE`).
+
 ## Test
 
 ```sh
