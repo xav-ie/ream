@@ -43,7 +43,7 @@
     "unocss": "^66.10.5"
   },
   "dependencies": {
-    "@atlaskit/pragmatic-drag-and-drop": "^1.8.1",
+    "@atlaskit/pragmatic-drag-and-drop": "^4.0.0",
     "pdfjs-dist": "^6.4.299"
   }
 }
