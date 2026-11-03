@@ -37,7 +37,7 @@ let
     pnpmDeps = fetchPnpm10Deps {
       inherit (finalAttrs) pname version src;
       fetcherVersion = 3;
-      hash = "sha256-4qRvQ0T8ZD7LY0OXUG9kpwK7eYDaRmtqBrV0alIRNmc=";
+      hash = "sha256-9Awo9xSrMOFSfwwWJeL7HHLTSP67iJPg3YnWiQ5Z6rA=";
     };
     buildPhase = ''
       runHook preBuild
