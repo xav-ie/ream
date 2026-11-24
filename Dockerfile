@@ -2,7 +2,7 @@
 # the CLIs it runs, then copies only its runtime closure into an empty image.
 # wrangler builds this for Cloudflare Containers (Deploy button, CI, and
 # `pnpm run deploy`); it needs nothing on the host but Docker or Podman.
-FROM docker.io/nixos/nix:2.35.3@sha256:62c506c32c75395163676006f0c00d75c31578fffaac1167d600289f72477b78 AS build
+FROM docker.io/nixos/nix:2.35.6@sha256:b49cb33f3a7e5cf3933ad8774529de0e3807ec5cf54987aa7ccdfb49f2fc55ed AS build
 WORKDIR /src
 COPY . .
 RUN nix --extra-experimental-features "nix-command flakes" \
